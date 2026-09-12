@@ -1,0 +1,4 @@
+LocalSettings.php
+.env
+secrets/
+backups/
