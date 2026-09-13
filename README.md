@@ -19,7 +19,8 @@ The current stack consists of:
 - a MariaDB healthcheck
 - a file-based Compose secret for the database password
 
-See [docs/architecture.md](docs/architecture.md) for the architecture diagram.
+See [docs/architecture.md](docs/architecture.md) for the planned target
+architecture for later stages of the lab.
 
 ## Requirements
 
@@ -37,11 +38,11 @@ docker compose version
 git --version
 ```
 
-Initial setup
+## Initial setup
 
 Clone the repository and enter the project directory:
 ```bash
-git clone git@github.com:gorokhov-byte/devops-mediawiki-lab.git
+git clone https://github.com/gorokhov-byte/devops-mediawiki-lab.git
 cd devops-mediawiki-lab
 ```
 Create the local environment file:
@@ -65,7 +66,7 @@ chmod 644 secrets/db_password.txt
 ```
 The password file is intentionally excluded from Git.
 
-First start
+## First start
 
 On the first start, use only the base Compose file:
 ```bash
@@ -79,9 +80,19 @@ MariaDB should eventually report:
 
 Up ... (healthy)
 
-Open MediaWiki in a browser:
+Open MediaWiki in a browser.
 
+If the browser runs on the Docker host:
+
+```text
 http://localhost:8080
+```
+
+If Docker runs on a remote VM, open:
+
+```text
+http://<docker-host-ip>:8080
+```
 
 When the installer asks for database settings, use:
 
@@ -97,7 +108,7 @@ services on the project network.
 Complete the MediaWiki installation and download the generated
 LocalSettings.php.
 
-Copy LocalSettings.php into the project directory.
+Copy `LocalSettings.php` into the repository root on the Docker host.
 
 Set permissions so that the web server inside the container can read the file:
 
@@ -123,9 +134,9 @@ secret is mounted into both the MariaDB and MediaWiki services.
 The file must remain outside Git because it contains sensitive installation
 settings.
 
-Running the installed wiki
+## Running the installed wiki
 
-After LocalSettings.php exists, start the stack using both Compose files:
+After `LocalSettings.php` exists, start the stack using both Compose files:
 ```bash
 sudo docker compose \
   -f compose.yaml \
@@ -143,7 +154,7 @@ sudo docker compose \
   -f compose.installed.yaml \
   ps
 ```
-Useful commands
+## Useful commands
 
 View service logs:
 ```bash
@@ -166,9 +177,12 @@ Check the MariaDB health status:
 ```bash
 sudo docker inspect \
   --format='Status={{.State.Health.Status}}' \
-  devops-mediawiki-lab-db-1
+  "$(sudo docker compose ps -q db)"
 ```
-Backup
+## Database backup
+
+This procedure backs up only the MediaWiki database. Uploaded files stored in
+the `images` volume require a separate backup.
 
 Create a local backup directory:
 ```bash
@@ -194,7 +208,9 @@ Verify that the file was created:
 ```bash
 ls -lh "$BACKUP"
 ```
-Restore
+## Database restore
+
+This procedure restores only the MediaWiki database.
 
 Stop MediaWiki before restoring the database:
 ```bash
@@ -213,7 +229,7 @@ Start MediaWiki again:
 ```bash
 sudo docker compose start wiki
 ```
-Persistent data
+## Persistent data
 
 MariaDB data is stored in a Docker volume mounted at:
 
@@ -229,7 +245,7 @@ application data.
 A Docker volume is not a backup. Backups must be stored separately and restore
 procedures should be tested.
 
-Local files excluded from Git
+## Local files excluded from Git
 
 The repository does not track:
 
