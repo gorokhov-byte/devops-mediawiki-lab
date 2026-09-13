@@ -28,7 +28,6 @@ services:
         condition: service_healthy
     volumes:
       - images:/var/www/html/images
-      - ./LocalSettings.php:/var/www/html/LocalSettings.php:ro
     secrets:
       - db_password
 
